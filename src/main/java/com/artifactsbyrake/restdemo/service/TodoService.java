@@ -5,7 +5,7 @@ import java.util.Map;
 public interface TodoService {
     String getTodoById(int id);
 
-    Map getTodosList();
+    Map getTodos();
 
     Object addTodo(String todo);
 

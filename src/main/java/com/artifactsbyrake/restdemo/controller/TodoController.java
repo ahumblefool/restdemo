@@ -23,7 +23,7 @@ public class TodoController {
     @GetMapping("/todos")
     public ResponseEntity<Map> getListOfTodos() {
         System.out.println("%%%%%% Finding ALL TODOS");
-        return ResponseEntity.ok(todoService.getTodosList());
+        return ResponseEntity.ok(todoService.getTodos());
     }
 
     @GetMapping("/todos/{id}")

@@ -47,7 +47,7 @@ public class TodoServiceImpl implements TodoService {
 
     @Cacheable("todos")
     @Override
-    public Map getTodosList() {
+    public Map getTodos() {
         System.out.print("##### FETCHING LIST OF TODOS ##### \n");
         return todos;
     }
