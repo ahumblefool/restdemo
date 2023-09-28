@@ -1,63 +1,86 @@
 package com.artifactsbyrake.restdemo.controller;
 
-import com.artifactsbyrake.restdemo.service.impl.TodoServiceImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Assertions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.artifactsbyrake.restdemo.service.TodoService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-
-@RunWith(SpringRunner.class)
 @WebMvcTest(TodoController.class)
+@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class TodoControllerTest {
 
     @Autowired
-    private MockMvc mvc;
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
-    private TodoServiceImpl todoService;
+    private TodoService todoService;
 
-    private final String BASE_PATH_V1 = "/api/1/0";
+    @InjectMocks
+    private TodoController todoController;
 
     @Test
-    public void testHello() throws Exception {
-        mvc.perform(
-                get(BASE_PATH_V1 + "/hello"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Hello Rest demo"));
+    public void testSayHello() throws Exception {
+        mockMvc.perform(get("/api/1/0/hello"))
+               .andExpect(status().isOk())
+               .andExpect(content().string("Hello Rest demo"));
     }
 
     @Test
-    public void testGetUsers() throws Exception {
-        //Mock setup
-        Map<Integer, String> expected = new HashMap<>();
-        expected.put(1, "Todo - 1");
-        expected.put(2, "Todo - 2");
-        Mockito.when(todoService.getTodos()).thenReturn(expected);
-
-        //perform call
-        MvcResult result = mvc.perform(
-                get(BASE_PATH_V1+ "/todos"))
-                .andExpect(status().isOk()).andReturn();
-        ObjectMapper mapper = new ObjectMapper();
-        Map actual = mapper.readValue(result.getResponse().getContentAsString(), Map.class);
-
-        //Assertions
-        Mockito.verify(todoService, Mockito.times(1)).getTodos();
-        Assertions.assertEquals(expected.size(), actual.size());
-        Assertions.assertEquals(expected.get(1), actual.get("1"));
+    public void testGetListOfTodos() throws Exception {
+        mockMvc.perform(get("/api/1/0/todos"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.yourExpectedResponseField").value("yourExpectedValue"));
+        // Add more assertions based on your expected response
     }
 
+    @Test
+    public void testGetTodoById() throws Exception {
+        int todoId = 1; // Replace with a valid todo id
+        mockMvc.perform(get("/api/1/0/todos/{id}", todoId))
+               .andExpect(status().isOk())
+               .andExpect(content().string("yourExpectedTodoResponse"));
+        // Add more assertions based on your expected response
+    }
+
+    @Test
+    public void testAddTodo() throws Exception {
+        String newTodo = "yourNewTodo";
+        ResultActions resultActions = mockMvc.perform(post("/api/1/0/todos")
+               .content(newTodo)
+               .contentType(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isCreated())
+                      .andExpect(header().exists("Location"));
+        // Add more assertions based on your expected response
+    }
+
+    @Test
+    public void testDeleteTodo() throws Exception {
+        int todoId = 1; // Replace with a valid todo id
+        mockMvc.perform(delete("/api/1/0/todos/{id}", todoId))
+               .andExpect(status().isNoContent());
+        // Add more assertions based on your expected response
+    }
 }
